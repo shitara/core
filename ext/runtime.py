@@ -1,5 +1,6 @@
 
 import lupa
+import logging
 
 from core.db import models
 from core.ext.exception import errors
@@ -20,6 +21,9 @@ class LuaRuntime:
             str, int, float, list, dict,
             isinstance,
             ])
+        self.property_bind(**{
+            'logging': logging,
+            })
         self.property_bind(**{
             'models': models,
             'errors': errors,
