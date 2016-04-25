@@ -18,7 +18,7 @@ class LuaRuntime:
         self.runtime.execute("package.path = package.path ..';%s'" % ';'.join(modules))
         self.runtime.execute("package.path = package.path ..';%s'" % ';'.join(modules))
         self.property_builtin([
-            str, int, float, list, dict,
+            str, int, float, list, dict, repr,
             isinstance,
             ])
         self.property_bind(**{
