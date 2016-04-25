@@ -75,7 +75,7 @@ def user(meta, request, response):
     if meta.get('secrets'):
         parameters = {}
         for i in secrets[meta['secrets']].get('property') or []:
-            parameters[i] = request.params[i]
+            parameters[i] = request.params.get(i)
         model = models[secrets[meta['secrets']]['model'].capitalize()]
         current_user = model.objects(**parameters).first()
         validation(secrets[meta['secrets']], current_user)
