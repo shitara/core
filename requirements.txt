@@ -1,5 +1,5 @@
 dicttoxml==1.6.6
-falcon==0.3.0
+-e git+https://github.com/falconry/falcon.git@538958713be9f9bbf16d0af34461dfbf8278e507#egg=falcon
 gunicorn==19.4.5
 Jinja2==2.8
 lupa==1.2
