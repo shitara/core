@@ -3,7 +3,7 @@ import falcon
 import logging
 
 from core.ext import autoreload
-from core.conf import settings
+from core.conf import settings, env
 from core.ext.process import processes
 from core.web.handler import handlers
 
@@ -14,5 +14,6 @@ for handler in handlers:
         handler[0], handler[1]
         )
 
-logging.info('%s is started to running' % (
-    settings['name']))
+logging.info('%s for %s is started to running' % (
+    settings['name'], env))
+

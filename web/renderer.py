@@ -39,14 +39,14 @@ def __append_headers(response, meta):
 
 def render(request, response, locale, meta, data):
 
-    environment.filters['h'] = lambda v,c: v
+    environment.filters['h'] = lambda v,c: str(v).replace('\n', '<break>')
     environment.install_gettext_translations(locale)
 
     document = environment.from_string(meta['format']).render(**data)
 
     document = yaml.load(document)
 
-    response.body = TYPES[meta['type']](document)
+    response.body = TYPES[meta['type']](document).replace('<break>', '\\n')
     __append_headers(response, meta)
 
 def error(request, response, meta, error):
