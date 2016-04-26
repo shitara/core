@@ -9,7 +9,8 @@ plugins = propdict()
 
 for name, plugin in settings['plugin'].items():
     try:
-        _plugin = import_attr(plugin['module'])
+        _plugin = import_attr(
+            isinstance(plugin, dict) and plugin['module'] or plugin)
         plugins[name] = not 'arguments' in plugin and _plugin or _plugin(
             **(plugin.get('arguments') or {}))
     except ImportError as e:
@@ -19,7 +20,8 @@ excepts = []
 
 for plugin in (settings.get('except') or []):
     try:
-        _plugin = import_attr(plugin['module'])
+        _plugin = import_attr(
+            isinstance(plugin, dict) and plugin['module'] or plugin)
         excepts.append(not 'arguments' in plugin and _plugin or _plugin(
             **(plugin.get('arguments') or {})))
     except ImportError as e:
