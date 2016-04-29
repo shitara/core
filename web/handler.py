@@ -13,7 +13,7 @@ from core.ext.runtime import LuaRuntime
 from core.ext.exception import errors, Error
 from core.ext import plugin
 
-def logger(func):
+def loggingrequest(func):
     def _(*args, **kwargs):
         t = time.time()
         r = func(*args, **kwargs)
@@ -30,7 +30,7 @@ class RequestHandler(object):
         self.meta = meta
         self.session = session
 
-    @logger
+    @loggingrequest
     def on_get(self, request, response, **kwargs):
         if request.accept == 'document':
             self.on_document(
@@ -39,7 +39,7 @@ class RequestHandler(object):
             self.on_request(
                 'get', request, response, **kwargs)
 
-    @logger
+    @loggingrequest
     def on_post(self, request, response, **kwargs):
         if request.accept == 'document':
             self.on_document(
@@ -65,9 +65,15 @@ class RequestHandler(object):
 
             data = LuaRuntime(_ = locale.gettext).execute(
                 create_path(self.path, 'main.lua'),
-                modules = modules, settings = settings, request = request, response = response,
+                modules = modules, settings = settings, request = request, response = type('', (object,), dict(
+                        __getattr__ = lambda self, name: (
+                            getattr(response, name) ),
+                        redirect = lambda location: falcon.HTTPMovedPermanently(location),
+                    ))(),
                 )
             render(request, response, locale, self.meta['response'], dict(data))
+        except falcon.HTTPStatus as e:
+            raise e
         except Exception as e:
             return self.on_exception(e, request, response)
 

@@ -4,7 +4,7 @@ import logging
 
 from core.db import models
 from core.ext.exception import errors
-from core.ext.plugin import plugins
+from core.ext.plugin import runtimes
 
 from mongoengine import *
 
@@ -28,7 +28,7 @@ class LuaRuntime:
             'models': models,
             'errors': errors,
             })
-        self.property_bind(**plugins)
+        self.property_bind(**runtimes)
 
     def execute(self, path, **kwargs):
         self.initialize(kwargs.get('modules') or [])

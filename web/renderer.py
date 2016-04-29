@@ -7,13 +7,15 @@ import jinja2
 
 from core.conf import settings
 from core.util.json import dumps
+from core.ext.plugin import renders
 from dicttoxml import dicttoxml
 
-TYPES = {
-    'text': lambda c: str(c),
-    'json': lambda c: dumps(c),
-    'xml':  lambda c: dicttoxml(c, attr_type=False),
-}
+TYPES = dict(
+    text = lambda c: str(c),
+    json = lambda c: dumps(c),
+    xml  = lambda c: dicttoxml(c, attr_type=False),
+)
+TYPES.update(renders)
 
 class Undefined(jinja2.Undefined):
     def operate(self, *args, **kwargs):
@@ -28,7 +30,9 @@ class Undefined(jinja2.Undefined):
 environment = jinja2.Environment(
     undefined=Undefined, extensions=['jinja2.ext.i18n'])
 
-def __append_headers(response, meta):
+def __append_headers(response, meta, body):
+
+    response.body = body.replace('<break>', '\\n')
     response.content_type = 'application/%s' % meta['type']
 
     response.set_header('Access-Control-Allow-Credentials', 'true')
@@ -46,8 +50,9 @@ def render(request, response, locale, meta, data):
 
     document = yaml.load(document)
 
-    response.body = TYPES[meta['type']](document).replace('<break>', '\\n')
-    __append_headers(response, meta)
+    body = TYPES[meta['type']](document)
+
+    __append_headers(response, meta, body)
 
 def error(request, response, meta, error):
 
@@ -55,9 +60,9 @@ def error(request, response, meta, error):
 
     document = yaml.load(document)
 
-    response.body = TYPES[meta['type']](document)
+    body = TYPES[meta['type']](document)
     response.status = '%d %s' % (getattr(error, 'status', 500), 'NG')
-    __append_headers(response, meta)
+    __append_headers(response, meta, body)
 
 def document(request, response, locale, meta):
 
@@ -91,8 +96,8 @@ def document(request, response, locale, meta):
             )
         )
 
-    response.body = TYPES[meta['response']['type']](data)
-    __append_headers(response, meta['response'])
+    body = TYPES[meta['response']['type']](data)
+    __append_headers(response, meta['response'], body)
 
 
 

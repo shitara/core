@@ -7,7 +7,13 @@ from core.conf import settings, env
 from core.ext.process import processes
 from core.web.handler import handlers
 
-app = falcon.API(middleware=[])
+class API(falcon.API):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.req_options.keep_blank_qs_values = True
+        self.req_options.auto_parse_form_urlencoded = True
+
+app = API()
 
 for handler in handlers:
     app.add_route(

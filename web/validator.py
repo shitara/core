@@ -1,5 +1,6 @@
 
 import re
+import logging
 
 from core.util.json import loads
 from core.ext.exception import *
@@ -11,6 +12,7 @@ def query(meta, request, method):
             )
 
     parameters = {}
+
 
     for name, param in (meta.get('parameters') or {}).items():
         if 'default' in param:
