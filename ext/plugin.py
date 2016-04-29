@@ -14,7 +14,7 @@ def _(plugin):
     except ImportError as e:
         RuntimeError(e).throw()
 
-_plugins = settings.get('plugin')
+_plugins = settings.get('plugins')
 
 runtimes = propdict({
     name:_(plugin) for name, plugin in (_plugins.get('runtime') or {}).items()
