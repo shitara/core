@@ -3,8 +3,8 @@ from core.conf import config, settings
 from core.util.dict import propdict
 
 class Error(Exception):
-    def __init__(self, kwargs):
-        self.message = self.message % kwargs
+    def __init__(self, message):
+        self.message = message
 
     def throw(self):
         raise self
@@ -25,5 +25,5 @@ errors = propdict()
 for k,v in config(settings['application']['errors']).items():
     errors[k] = type(k, (Error,), dict(
         status = v['status'],
-        message = v.get('message', '%s'),
+        format = v['format'],
         ))
