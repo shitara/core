@@ -111,7 +111,7 @@ class RequestHandler(object):
 
         if not isinstance(exception, Error):
             exception = errors.InternalServerError(
-                'server error occur')
+                'internal server error occurred')
 
         error(request, response, locale, self.meta['response'], exception)
 
