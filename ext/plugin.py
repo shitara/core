@@ -4,6 +4,7 @@ from core.ext.exception import RuntimeError
 from core.util.dict import propdict
 from core.util.importlib import import_attr
 
+import logging
 
 def _(plugin):
     try:
@@ -16,13 +17,21 @@ def _(plugin):
 
 _plugins = settings.get('plugins')
 
-runtimes = propdict({
-    name:_(plugin) for name, plugin in (_plugins.get('runtime') or {}).items()
-    })
+def dotname(name, data):
+    namespaces = name.split('.')
+    for v in namespaces[1::]:
+        data = dict({ v: data })
+    return (namespaces[0], data)
 
-renders = propdict({
-    name:getattr(_(plugin), 'render') for name, plugin in (_plugins.get('render') or {}).items()
-    })
+runtimes = propdict()
+for name, plugin in (_plugins.get('runtime') or {}).items():
+    name, plugin = dotname(name, _(plugin))
+    runtimes[name] = plugin
+
+renders = propdict()
+for name, plugin in (_plugins.get('render') or {}).items():
+    name, plugin = dotname(name, getattr(_(plugin), 'render'))
+    renders[name] = plugin
 
 excepts = [
     _(plugin) for plugin in (_plugins.get('except') or [])
