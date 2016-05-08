@@ -5,6 +5,7 @@ import logging
 import falcon
 import time
 
+from core.db import models
 from core.conf import create_path, config, settings
 from core.web.renderer import render, error, document
 from core.web.locale import Locale
@@ -61,11 +62,19 @@ class RequestHandler(object):
                 self.meta['request'], request, method)
 
             modules = [
-                create_path(v) for v in self.meta['script']['dependency']]
+                create_path(v) for v in self.meta['script']['dependency']
+                ]
 
             data = LuaRuntime(_ = locale.gettext).execute(
                 create_path(self.path, 'main.lua'),
-                modules = modules, settings = settings, request = request, response = type('', (object,), dict(
+                modules = modules,
+                properties = dict(
+                    models = models,
+                    errors = {
+                        i:errors[i] for i in (self.meta.get('errors') or [])
+                        } if 'errors' in self.meta else errors,
+                    ),
+                request = request, response = type('', (object,), dict(
                         __getattr__ = lambda self, name: (
                             getattr(response, name) ),
                         redirect = lambda self, location: (
@@ -80,6 +89,9 @@ class RequestHandler(object):
             return self.on_exception(e, request, response)
 
     def on_exception(self, exception, request, response):
+        locale = Locale(request.headers.get(
+            'Accept-Language'.upper()) or 'en')
+
         ex, ms, tb = sys.exc_info()
         message = '''\npath: %s\nparams: %s\ncookie: %s\nheaders: %s\nuser: %s\nexception: %s (%s)\ntraceback:%s\n''' % (
             request.path,
@@ -101,9 +113,9 @@ class RequestHandler(object):
 
         if not isinstance(exception, Error):
             exception = errors.InternalServerError(
-                'internal server error')
+                'internal server error occurred')
 
-        error(request, response, self.meta['response'], exception)
+        error(request, response, locale, self.meta['response'], exception)
 
 
     def on_document(self, request, response, **kwargs):

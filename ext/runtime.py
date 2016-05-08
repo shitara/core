@@ -2,13 +2,13 @@
 import lupa
 import logging
 
-from core.db import models
-from core.ext.exception import errors
+from core.conf import settings
 from core.ext.plugin import runtimes
 
 from mongoengine import *
 
 
+<<<<<<< HEAD
 preset = '''
 table.filter = function(t, filter)
     local dic = {}
@@ -57,22 +57,18 @@ class LuaRuntime:
         self.runtime = lupa.LuaRuntime()
         self.property_bind(**kwargs)
 
-    def initialize(self, modules = []):
-        self.runtime.execute(
-            'package.path = package.path ..\';%s\'\n%s' % (';'.join(modules), preset)
-            )
+    def initialize(self, properties, modules = []):
+        self.runtime.execute("package.path = package.path ..';%s'" % ';'.join(modules))
+        self.runtime.execute("package.path = package.path ..';%s'" % ';'.join(modules))
         self.property_builtin([
             str, int, float, list, dict, repr,
             isinstance,
             ])
-        self.property_bind(**{
-            'models': models,
-            'errors': errors,
-            })
+        self.property_bind(**properties)
         self.property_bind(**runtimes)
 
     def execute(self, path, **kwargs):
-        self.initialize(kwargs.get('modules') or [])
+        self.initialize(kwargs['properties'], kwargs['modules'])
         self.property_bind(**kwargs)
         with open(path) as f:
             return self.runtime.execute(

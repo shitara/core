@@ -47,15 +47,20 @@ def render(request, response, locale, meta, data):
     environment.filters['h'] = lambda v,c: str(v).replace('\n', '<break>') if v != None else ''
     environment.install_gettext_translations(locale)
 
-    document = environment.from_string(meta['format']).render(**data)
+    document = environment.from_string(meta['format']).render(
+        **data)
 
     document = yaml.load(document)
 
     body = TYPES[meta['type']](document)
 
+    response.status = '%d %s' % (200, 'OK')
     __append_headers(response, meta, body)
 
-def error(request, response, meta, error):
+def error(request, response, locale, meta, error):
+
+    environment.filters['h'] = lambda v,c: str(v).replace('\n', '<break>')
+    environment.install_gettext_translations(locale)
 
     document = environment.from_string(error.format).render(
         error = error)

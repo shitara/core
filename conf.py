@@ -4,6 +4,7 @@ import sys
 import logging
 import yaml
 import collections
+from core.util.dict import deepupdate
 
 yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
     lambda loader, node: collections.OrderedDict(loader.construct_pairs(node)))
@@ -24,7 +25,7 @@ _settings = yaml.load(
 
 env = os.environ.get('PY_PRODUCTION', 'development')
 settings = _settings['configuration']
-settings.update(_settings[env])
+settings = deepupdate(settings, _settings[env])
 
 sys.path.append(BASE_DIR)
 
