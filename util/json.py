@@ -9,11 +9,16 @@ class JSONDecoder(json.JSONDecoder):
 class JSONEncoder(json.JSONEncoder):
 
     def default(self, o):
-        if isinstance(o, datetime.datetime):
-            return o.strftime('%Y-%m-%d %H:%M:%S')
-        if isinstance(o, datetime.date):
+        try:
+            if isinstance(o, datetime.datetime):
+                return o.strftime('%Y-%m-%d %H:%M:%S')
+            if isinstance(o, datetime.date):
+                return str(o)
+            if lupa.lua_type(o) == 'table':
+                return dict(o)
+            return super().default(o)
+        except TypeError as e:
             return str(o)
-        return super().default(o)
 
     def encode(self, o, *argv, **kwargs):
         return super().encode(
