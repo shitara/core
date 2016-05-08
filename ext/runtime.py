@@ -8,7 +8,6 @@ from core.ext.plugin import runtimes
 from mongoengine import *
 
 
-<<<<<<< HEAD
 preset = '''
 table.filter = function(t, filter)
     local dic = {}
