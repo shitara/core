@@ -57,8 +57,9 @@ class LuaRuntime:
         self.property_bind(**kwargs)
 
     def initialize(self, properties, modules = []):
-        self.runtime.execute("package.path = package.path ..';%s'" % ';'.join(modules))
-        self.runtime.execute("package.path = package.path ..';%s'" % ';'.join(modules))
+        self.runtime.execute(
+            'package.path = package.path ..\';%s\'\n%s' % (';'.join(modules), preset)
+            )
         self.property_builtin([
             str, int, float, list, dict, repr,
             isinstance,
