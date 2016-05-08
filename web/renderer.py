@@ -2,6 +2,7 @@
 import os
 import yaml
 import re
+import logging
 
 import jinja2
 
@@ -30,7 +31,7 @@ class Undefined(jinja2.Undefined):
 environment = jinja2.Environment(
     undefined=Undefined, extensions=['jinja2.ext.i18n'])
 
-def __append_headers(response, meta, body):
+def __append_headers(response, meta, body = ''):
 
     response.body = body.replace('<break>', '\\n')
     response.content_type = 'application/%s' % meta['type']
@@ -43,7 +44,7 @@ def __append_headers(response, meta, body):
 
 def render(request, response, locale, meta, data):
 
-    environment.filters['h'] = lambda v,c: str(v).replace('\n', '<break>')
+    environment.filters['h'] = lambda v,c: str(v).replace('\n', '<break>') if v != None else ''
     environment.install_gettext_translations(locale)
 
     document = environment.from_string(meta['format']).render(**data)
@@ -56,7 +57,8 @@ def render(request, response, locale, meta, data):
 
 def error(request, response, meta, error):
 
-    document = environment.from_string(str(error)).render()
+    document = environment.from_string(error.format).render(
+        error = error)
 
     document = yaml.load(document)
 
@@ -70,7 +72,7 @@ def document(request, response, locale, meta):
     environment.install_gettext_translations(locale)
 
     document = environment.from_string(
-        re.sub('\{%.+?\%}', '', meta['response']['format'])
+        re.sub('\{%.+?\%}', '', meta['response']['format']).replace('[]', '')
         ).render()
 
     document = yaml.load(document)
@@ -98,6 +100,5 @@ def document(request, response, locale, meta):
 
     body = TYPES[meta['response']['type']](data)
     __append_headers(response, meta['response'], body)
-
 
 

@@ -68,7 +68,9 @@ class RequestHandler(object):
                 modules = modules, settings = settings, request = request, response = type('', (object,), dict(
                         __getattr__ = lambda self, name: (
                             getattr(response, name) ),
-                        redirect = lambda location: falcon.HTTPMovedPermanently(location),
+                        redirect = lambda self, location: (
+                            (_ for _ in ()).throw(falcon.HTTPMovedPermanently(location))
+                            ),
                     ))(),
                 )
             render(request, response, locale, self.meta['response'], dict(data))
@@ -98,7 +100,8 @@ class RequestHandler(object):
             else: logging.error(e)
 
         if not isinstance(exception, Error):
-            exception = errors.InternalServerError('')
+            exception = errors.InternalServerError(
+                'internal server error')
 
         error(request, response, self.meta['response'], exception)
 
@@ -111,7 +114,6 @@ class RequestHandler(object):
             document(request, response, locale, self.meta)
         except Exception as e:
             return self.on_exception(e, request, response)
-
 
 handlers = []
 

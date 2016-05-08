@@ -1,9 +1,11 @@
 
 from core.conf import settings
+from core.util import json
 from core.ext.exception import RuntimeError
 
 import hashlib
 import mongoengine
+import logging
 
 
 class Sha256Field(mongoengine.StringField):
@@ -15,3 +17,8 @@ class Sha256Field(mongoengine.StringField):
     def prepare_query_value(self, op, value):
         return super().prepare_query_value(
             op, hashlib.sha256(value.encode('utf-8')).hexdigest())
+
+
+class JsonField(mongoengine.StringField):
+
+    pass

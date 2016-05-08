@@ -1,6 +1,7 @@
 
 import re
 import logging
+from datetime import datetime
 
 from core.util.json import loads
 from core.ext.exception import *
@@ -31,13 +32,19 @@ def query(meta, request, method):
         if param.get('convert') and request.params[name]:
             try:
                 request.params[name] = dict(
-                    string = str, integer = int, float = float, byte = bytes, json = loads,
+                    string   = str,
+                    integer  = int,
+                    float    = float,
+                    byte     = bytes,
+                    json     = loads,
+                    datetime = lambda c: datetime.strptime(c, '%Y-%m-%d %H:%M:%S')
                     )[param.get('convert')](request.params[name])
             except:
-                if not re.match(param['pattern'], request.params[name]):
-                    errors.ValidationError(
-                        (param.get('dismiss') or '%s is not match pattern') % name
-                        ).throw()
+                if param.get('pattern') and request.params[name]:
+                    if not re.match(param['pattern'], request.params[name]):
+                        errors.ValidationError(
+                            (param.get('dismiss') or '%s is not match pattern') % name
+                            ).throw()
 
         parameters[name] = request.params[name]
 

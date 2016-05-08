@@ -22,6 +22,7 @@ PROPERTIES = {
     'datetime': DateTimeField,
     'boolean':  BooleanField,
     'binary':   BinaryField,
+    'json':     JsonField,
 }
 
 REFERENCES = {
@@ -55,13 +56,18 @@ class ActiveRecord:
                 })
         return False
 
-    @classmethod
-    def pre_save(cls, sender, document, **kwargs):
-        document.updated_at = datetime.now()
+    def save(self, *args, **kwargs):
+        self.updated_at = datetime.now()
+        return super().save(*args, **kwargs)
 
     @classmethod
     def create(cls, kwargs):
         return cls(**kwargs)
+
+    @classmethod
+    def update(cls, query, data, upsert = False):
+        return cls.query(**query).update(
+            **data, upsert = upsert)
 
     @classmethod
     def find(cls, id):
