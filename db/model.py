@@ -38,8 +38,11 @@ for i,v in settings['database'].items():
         )
 
 class ActiveRecord:
+
     created_at = DateTimeField(default=datetime.now())
     updated_at = DateTimeField(default=datetime.now())
+
+    meta = { 'strict': False }
 
     def __getitem__(self, name):
         if name in self._fields_ordered:
@@ -94,7 +97,7 @@ def properties(name, config):
     properties = dict(
         meta = dict (
             db_alias = config.get('database') or 'default',
-            collection = plural(name),
+            collection = plural(config.get('document') or name),
             )
         )
 
