@@ -42,8 +42,6 @@ class ActiveRecord:
     created_at = DateTimeField(default=datetime.now())
     updated_at = DateTimeField(default=datetime.now())
 
-    meta = { 'strict': False }
-
     def __getitem__(self, name):
         if name in self._fields_ordered:
             return getattr(self, name)
@@ -98,6 +96,7 @@ def properties(name, config):
         meta = dict (
             db_alias = config.get('database') or 'default',
             collection = plural(config.get('document') or name),
+            strict = config.get('strict') or false,
             )
         )
 
