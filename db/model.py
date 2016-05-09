@@ -96,7 +96,7 @@ def properties(name, config):
         meta = dict (
             db_alias = config.get('database') or 'default',
             collection = plural(config.get('document') or name),
-            strict = config.get('strict') or false,
+            strict = config.get('strict') or False,
             )
         )
 
