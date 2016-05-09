@@ -1,4 +1,6 @@
 
+import logging
+
 from core.conf import settings
 from core.ext.exception import RuntimeError
 from core.util.dict import propdict
@@ -39,8 +41,8 @@ for i,v in settings['database'].items():
 
 class ActiveRecord:
 
-    created_at = DateTimeField(default=datetime.now())
-    updated_at = DateTimeField(default=datetime.now())
+    created_at = DateTimeField(required=True, default=datetime.now)
+    updated_at = DateTimeField(required=True, default=datetime.now)
 
     def __getitem__(self, name):
         if name in self._fields_ordered:
@@ -75,7 +77,7 @@ class ActiveRecord:
         if isinstance(id, str):
             return cls.query(id = id).first()
         else:
-            return cls.find_by(id)
+            return id and cls.find_by(id).first() or None
 
     @classmethod
     def find_by(cls, kwargs = {}):
