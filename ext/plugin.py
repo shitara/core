@@ -19,7 +19,7 @@ _plugins = settings.get('plugins')
 
 def dotname(name, data):
     namespaces = name.split('.')
-    for v in namespaces[1::]:
+    for v in reversed(namespaces[1:]):
         data = dict({ v: data })
     return (namespaces[0], data)
 

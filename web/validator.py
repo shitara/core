@@ -37,9 +37,10 @@ def query(meta, request, method):
                     float    = float,
                     byte     = bytes,
                     json     = loads,
+                    boolean  = lambda c: c in ['true', '1'],
                     datetime = lambda c: datetime.strptime(c, '%Y-%m-%d %H:%M:%S')
                     )[param.get('convert')](request.params[name])
-            except:
+            except Exception as e:
                 if param.get('pattern') and request.params[name]:
                     if not re.match(param['pattern'], request.params[name]):
                         errors.ValidationError(

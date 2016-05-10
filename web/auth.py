@@ -66,11 +66,14 @@ def user(meta, request, response):
                 'no user').throw()
         return False
 
+    current_user = None
+
     if meta.get('session'):
         cookie = request.cookies.get(settings['session']['name'])
-        cookie or errors.AuthenticateError('no user').throw()
         model = models[session[meta['session']]['model'].capitalize()]
-        current_user = model.objects(id = cookie).first()
+        try:
+            current_user = model.objects(id = cookie).first()
+        except: pass
         validation(session[meta['session']], current_user)
 
     if meta.get('secrets'):

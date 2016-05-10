@@ -7,7 +7,7 @@ import logging
 import jinja2
 
 from core.conf import settings
-from core.util.json import dumps
+from core.util.json import dumps, loads
 from core.ext.plugin import renders
 from dicttoxml import dicttoxml
 
@@ -30,15 +30,23 @@ class Undefined(jinja2.Undefined):
 
 environment = jinja2.Environment(
     undefined=Undefined, extensions=['jinja2.ext.i18n'])
+environment.filters['json'] = lambda v: isinstance(v, str) and loads(v) or v
 
-def __append_headers(response, meta, body = ''):
+def __append_headers(request, response, meta, body = ''):
 
     response.body = body.replace('<break>', '\\n')
     response.content_type = 'application/%s' % meta['type']
 
     response.set_header('Access-Control-Allow-Credentials', 'true')
-    response.set_header('Access-Control-Allow-Origin', ' '.join(
-        settings.get('allow-origins') or []))
+
+    if settings.get('allow-origin'):
+        response.set_header('Access-Control-Allow-Origin',
+             request.headers.get('ORIGIN', '') if settings['allow-origin'] == True else settings['allow-origin']
+             )
+    else:
+        response.set_header('Access-Control-Allow-Origin', ' '.join(
+            settings.get('allow-origins') or []
+            ))
     for i,v in (meta.get('headers') or {}).items():
         response.set_header(i, v)
 
@@ -55,7 +63,7 @@ def render(request, response, locale, meta, data):
     body = TYPES[meta['type']](document)
 
     response.status = '%d %s' % (200, 'OK')
-    __append_headers(response, meta, body)
+    __append_headers(request, response, meta, body)
 
 def error(request, response, locale, meta, error):
 
@@ -69,7 +77,7 @@ def error(request, response, locale, meta, error):
 
     body = TYPES[meta['type']](document)
     response.status = '%d %s' % (getattr(error, 'status', 500), 'NG')
-    __append_headers(response, meta, body)
+    __append_headers(request, response, meta, body)
 
 def document(request, response, locale, meta):
 
@@ -104,6 +112,6 @@ def document(request, response, locale, meta):
         )
 
     body = TYPES[meta['response']['type']](data)
-    __append_headers(response, meta['response'], body)
+    __append_headers(request, response, meta['response'], body)
 
 

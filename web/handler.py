@@ -18,8 +18,9 @@ def loggingrequest(func):
     def _(*args, **kwargs):
         t = time.time()
         r = func(*args, **kwargs)
-        logging.info('[%s] %s %s %f' % (
-            args[1].method, args[1].relative_uri, args[2].status[:3], time.time() - t)
+        logging.info('[%s] %s %s [%s] %f' % (
+            args[1].method, args[1].relative_uri, args[2].status[:3], ','.join(
+                args[1].access_route), time.time() - t)
             )
         return r
     return _
@@ -93,12 +94,13 @@ class RequestHandler(object):
             'Accept-Language'.upper()) or 'en')
 
         ex, ms, tb = sys.exc_info()
-        message = '''\npath: %s\nparams: %s\ncookie: %s\nheaders: %s\nuser: %s\nexception: %s (%s)\ntraceback:%s\n''' % (
+        message = '''\npath: %s\nparams: %s\ncookie: %s\nheaders: %s\nuser: %s\naddress: %s\nexception: %s (%s)\ntraceback:%s\n''' % (
             request.path,
             request.params,
             request.cookies,
             request.headers,
             getattr(request, 'user', None) and request.user.id or 'anonymous',
+            ','.join(request.access_route),
             type(exception), ms,
             ''.join(traceback.format_tb(tb)),)
         logging.error(message)
