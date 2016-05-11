@@ -34,7 +34,10 @@ environment.filters['json'] = lambda v: isinstance(v, str) and loads(v) or v
 
 def __append_headers(request, response, meta, body = ''):
 
-    response.body = body.replace('<break>', '\\n')
+
+    response.body = (
+        isinstance(body, str) and body or body.decode('utf-8')
+            ).replace('<break>', '\\n')
     response.content_type = 'application/%s' % meta['type']
 
     response.set_header('Access-Control-Allow-Credentials', 'true')
