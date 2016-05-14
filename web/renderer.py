@@ -64,9 +64,7 @@ def render(locale, meta, data):
 
     document = yaml.load(document)
 
-    return TYPES[meta['type']](
-        document.replace('<break>', '\\n')
-        )
+    return TYPES[meta['type']](document).replace('<break>', '\\n')
 
 
 def response(request, response, locale, meta, data):
