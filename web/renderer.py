@@ -55,7 +55,7 @@ def __append_headers(request, response, meta, body = ''):
 def render(locale, meta, data):
 
     environment.filters['h'] = lambda v,c: (
-        isinstance(v, str) and '\'%s\'' % v.replace('\n', '<break>') or v != None and v or ''
+        isinstance(v, str) and '\'%s\'' % v.replace('\n', '<break>') or v != None and str(v) or ''
         )
     environment.install_gettext_translations(locale)
 
@@ -70,7 +70,7 @@ def render(locale, meta, data):
 def response(request, response, locale, meta, data):
 
     environment.filters['h'] = lambda v,c: (
-        isinstance(v, str) and '\'%s\'' % v.replace('\n', '<break>') or v != None and v or ''
+        isinstance(v, str) and '\'%s\'' % v.replace('\n', '<break>') or v != None and str(v) or ''
         )
     environment.install_gettext_translations(locale)
 
@@ -88,7 +88,7 @@ def response(request, response, locale, meta, data):
 def error(request, response, locale, meta, error):
 
     environment.filters['h'] = lambda v,c: (
-        isinstance(v, str) and '\'%s\'' % v.replace('\n', '<break>') or v != None and v or ''
+        isinstance(v, str) and '\'%s\'' % v.replace('\n', '<break>') or v != None and str(v) or ''
         )
     environment.install_gettext_translations(locale)
 
