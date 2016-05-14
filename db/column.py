@@ -21,4 +21,15 @@ class Sha256Field(mongoengine.StringField):
 
 class JsonField(mongoengine.StringField):
 
-    pass
+    def to_python(self, value):
+        return json.loads(value) if isinstance(value, str) else value
+
+    def validate(self, value):
+        try:
+            json.dumps(value)
+        except:
+            super().validate(value)
+
+    def to_mongo(self, value, **kwargs):
+        return super().to_mongo(
+            json.dumps(value), **kwargs)
