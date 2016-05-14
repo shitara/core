@@ -52,7 +52,8 @@ def __append_headers(request, response, meta, body = ''):
         response.set_header(i, v)
 
 
-def render(locale, meta, data, parse = True):
+def render(locale, meta, data):
+
     environment.filters['h'] = lambda v,c: (
         isinstance(v, str) and '\'%s\'' % v.replace('\n', '<break>') or v != None and v or ''
         )
@@ -63,7 +64,9 @@ def render(locale, meta, data, parse = True):
 
     document = yaml.load(document)
 
-    return TYPES[meta['type']](document) if parse else document
+    return TYPES[meta['type']](
+        document.replace('<break>', '\\n')
+        )
 
 
 def response(request, response, locale, meta, data):
