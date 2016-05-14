@@ -7,12 +7,11 @@ import time
 
 from core.db import models
 from core.conf import create_path, config, settings
-from core.web.renderer import render, error, document
+from core.web import renderer, validator
 from core.web.locale import Locale
-from core.web import validator, auth
+from core.ext import plugin
 from core.ext.runtime import LuaRuntime
 from core.ext.exception import errors, Error
-from core.ext import plugin
 
 def loggingrequest(func):
     def _(*args, **kwargs):
@@ -55,35 +54,49 @@ class RequestHandler(object):
             locale = Locale(request.headers.get(
                 'Accept-Language'.upper()) or 'en')
 
-            for i,v in kwargs.items():
-                request.params[i] = v
-            request = auth.user(
-                self.session, request, response)
-            request  = validator.query(
-                self.meta['request'], request, method)
+            request.params.update(kwargs)
 
-            modules = [
-                create_path(v) for v in self.meta['script']['dependency']
-                ]
+            request, user, session = validator.authenticate(
+                self.session, request, response
+                )
+            request = validator.parameters(
+                self.meta['request'], request, method
+                )
 
             data = LuaRuntime(_ = locale.gettext).execute(
                 create_path(self.path, 'main.lua'),
-                modules = modules,
+                modules = [
+                    create_path(v) for v in self.meta['dependency']
+                    ],
                 properties = dict(
                     models = models,
                     errors = {
                         i:errors[i] for i in (self.meta.get('errors') or [])
                         } if 'errors' in self.meta else errors,
                     ),
-                request = request, response = type('', (object,), dict(
-                        __getattr__ = lambda self, name: (
-                            getattr(response, name) ),
-                        redirect = lambda self, location: (
-                            (_ for _ in ()).throw(falcon.HTTPMovedPermanently(location))
-                            ),
-                    ))(),
+                request  = type('', (object,), dict(
+                    __getattr__ = lambda name: getattr(request, name),
+                    meta = meta,
+                    user = user,
+                    session = session,
+                    )),
+                response = type('', (object,), dict(
+                    __getattr__ = lambda name: (
+                        getattr(response, name) ),
+                    redirect = lambda location: (
+                        (_ for _ in ()).throw(falcon.HTTPMovedPermanently(location))
+                        ),
+                    broadcast = lambda name, value, option = dict(): (
+                        plugin.responses['broadcast'](
+                            renderer.render(
+                                locale, self.meta['broadcast'][name], value
+                                ), option)
+                        ),
+                    ))
                 )
-            render(request, response, locale, self.meta['response'], dict(data))
+            renderer.response(
+                request, response, locale, self.meta['response'], dict(data)
+                )
         except falcon.HTTPStatus as e:
             raise e
         except Exception as e:
@@ -117,7 +130,9 @@ class RequestHandler(object):
             exception = errors.InternalServerError(
                 'internal server error occurred')
 
-        error(request, response, locale, self.meta['response'], exception)
+        renderer.error(
+            request, response, locale, self.meta['response'], exception
+            )
 
 
     def on_document(self, request, response, **kwargs):
@@ -125,7 +140,9 @@ class RequestHandler(object):
             locale = Locale(request.headers.get(
                 'Accept-Language'.upper()) or 'en')
 
-            document(request, response, locale, self.meta)
+            renderer.document(
+                request, response, locale, self.meta
+                )
         except Exception as e:
             return self.on_exception(e, request, response)
 

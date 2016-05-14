@@ -8,15 +8,15 @@ import jinja2
 
 from core.conf import settings
 from core.util.json import dumps, loads
-from core.ext.plugin import renders
+from core.ext.plugin import renderers
 from dicttoxml import dicttoxml
 
 TYPES = dict(
     text = lambda c: str(c),
     json = lambda c: dumps(c),
-    xml  = lambda c: dicttoxml(c, attr_type=False),
+    xml  = lambda c: dicttoxml(c, attr_type=False).decode('utf-8'),
 )
-TYPES.update(renders)
+TYPES.update(renderers)
 
 class Undefined(jinja2.Undefined):
     def operate(self, *args, **kwargs):
@@ -32,12 +32,10 @@ environment = jinja2.Environment(
     undefined=Undefined, extensions=['jinja2.ext.i18n'])
 environment.filters['json'] = lambda v: isinstance(v, str) and loads(v) or v
 
+
 def __append_headers(request, response, meta, body = ''):
 
-
-    response.body = (
-        isinstance(body, str) and body or body.decode('utf-8')
-            ).replace('<break>', '\\n')
+    response.body = body.replace('<break>', '\\n')
     response.content_type = 'application/%s' % meta['type']
 
     response.set_header('Access-Control-Allow-Credentials', 'true')
@@ -53,7 +51,20 @@ def __append_headers(request, response, meta, body = ''):
     for i,v in (meta.get('headers') or {}).items():
         response.set_header(i, v)
 
-def render(request, response, locale, meta, data):
+
+def render(locale, meta, data, parse = True):
+    environment.filters['h'] = lambda v,c: str(v).replace('\n', '<break>') if v != None else ''
+    environment.install_gettext_translations(locale)
+
+    document = environment.from_string(meta['format']).render(
+        **data)
+
+    document = yaml.load(document)
+
+    return TYPES[meta['type']](document) if parse else document
+
+
+def response(request, response, locale, meta, data):
 
     environment.filters['h'] = lambda v,c: str(v).replace('\n', '<break>') if v != None else ''
     environment.install_gettext_translations(locale)
@@ -68,6 +79,7 @@ def render(request, response, locale, meta, data):
     response.status = '%d %s' % (200, 'OK')
     __append_headers(request, response, meta, body)
 
+
 def error(request, response, locale, meta, error):
 
     environment.filters['h'] = lambda v,c: str(v).replace('\n', '<break>')
@@ -81,6 +93,7 @@ def error(request, response, locale, meta, error):
     body = TYPES[meta['type']](document)
     response.status = '%d %s' % (getattr(error, 'status', 500), 'NG')
     __append_headers(request, response, meta, body)
+
 
 def document(request, response, locale, meta):
 

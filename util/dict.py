@@ -10,3 +10,6 @@ def deepupdate(d, u):
             d[k] = u[k]
     return d
 
+def shallowupdate(d, u):
+    d.update(u)
+    return d

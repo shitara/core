@@ -9,13 +9,26 @@ import logging
 def _(plugin):
     try:
         _plugin = import_attr(
-            isinstance(plugin, dict) and plugin['module'] or plugin)
-        return not 'arguments' in plugin and _plugin or _plugin(
-            **(plugin.get('arguments') or {}))
+            isinstance(plugin, dict) and plugin['class'] or plugin
+            )
+        _params = (
+            isinstance(plugin, dict) and plugin['arguments'] or {}
+            ) or {}
+        return dict(
+            type = lambda c: _plugin(**c),
+            list = lambda c: _plugin(*c),
+            )[type(_params).__name__](
+                _params) if isinstance(_plugin, type) else _plugin
     except ImportError as e:
         RuntimeError(e).throw()
 
-_plugins = settings.get('plugins')
+def plugin(name, default):
+    item = lambda i, d: (
+        item(i+1, d[name[i]]) if i < len(name) else d
+        )
+    try: return item(0, settings)
+    except KeyError as e:
+        return default
 
 def dotname(name, data):
     namespaces = name.split('.')
@@ -24,16 +37,21 @@ def dotname(name, data):
     return (namespaces[0], data)
 
 runtimes = propdict()
-for name, plugin in (_plugins.get('runtime') or {}).items():
-    name, plugin = dotname(name, _(plugin))
-    runtimes[name] = plugin
+for i,v in plugin(['runtime', 'plugins'], {}).items():
+    i,v = dotname(i, _(v))
+    runtimes[i] = v
 
-renders = propdict()
-for name, plugin in (_plugins.get('render') or {}).items():
-    name, plugin = dotname(name, getattr(_(plugin), 'render'))
-    renders[name] = plugin
+responses = propdict()
+for i,v in plugin(['response'], {}).items():
+    i,v = dotname(i, getattr(_(v), 'emit'))
+    responses[i] = v
+
+renderers = propdict()
+for i,v in plugin(['renderer', 'plugins'], {}).items():
+    i,v = dotname(i, getattr(_(v), 'render'))
+    renderers[i] = v
 
 excepts = [
-    _(plugin) for plugin in (_plugins.get('except') or [])
+    _(plugin) for plugin in plugin('except', [])
     ]
 
