@@ -15,7 +15,8 @@ def _(plugin):
             isinstance(plugin, dict) and plugin['arguments'] or {}
             ) or {}
         return dict(
-            type = lambda c: _plugin(**c),
+            OrderedDict = lambda c: _plugin(**c),
+            dict = lambda c: _plugin(**c),
             list = lambda c: _plugin(*c),
             )[type(_params).__name__](
                 _params) if isinstance(_plugin, type) else _plugin
