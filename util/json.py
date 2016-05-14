@@ -2,6 +2,7 @@ import re
 import json
 import datetime
 import lupa
+import collections
 
 class JSONDecoder(json.JSONDecoder):
     pass
