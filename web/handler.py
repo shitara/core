@@ -74,7 +74,7 @@ class RequestHandler(object):
                     ),
                 request  = type('', (object,), dict(
                     __getattr__ = lambda self, name: getattr(request, name),
-                    meta = meta,
+                    meta = self.meta,
                     user = user,
                     session = session,
                     ))(),
@@ -89,7 +89,8 @@ class RequestHandler(object):
                                 locale, self.meta['broadcast'][name], value
                                 ), option)
                         ),
-                    ))()
+                    meta = self.meta,
+                    ))(),
                 )
             renderer.response(
                 request, response, locale, self.meta['response'], dict(data)

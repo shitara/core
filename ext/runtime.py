@@ -61,7 +61,7 @@ class LuaRuntime:
             'package.path = package.path ..\';%s\'\n%s' % (';'.join(modules), preset)
             )
         self.property_builtin([
-            str, int, float, list, dict, repr,
+            str, int, float, list, dict, repr, len,
             isinstance,
             ])
         self.property_bind(**properties)
