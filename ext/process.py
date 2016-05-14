@@ -8,7 +8,7 @@ processes = []
 
 for plugin in (settings.get('process') or []):
     try:
-        _plugin = import_attr(plugin['module'])
+        _plugin = import_attr(plugin['class'])
         processes.append(not 'arguments' in plugin and _plugin or _plugin(
             **(plugin.get('arguments') or {})).start())
     except ImportError as e:
