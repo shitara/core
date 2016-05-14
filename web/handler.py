@@ -65,9 +65,7 @@ class RequestHandler(object):
 
             data = LuaRuntime(_ = locale.gettext).execute(
                 create_path(self.path, 'main.lua'),
-                modules = [
-                    create_path(v) for v in self.meta['dependency']
-                    ],
+                modules = [ create_path(v) for v in self.meta['dependency'] ],
                 properties = dict(
                     models = models,
                     errors = {
@@ -75,24 +73,23 @@ class RequestHandler(object):
                         } if 'errors' in self.meta else errors,
                     ),
                 request  = type('', (object,), dict(
-                    __getattr__ = lambda name: getattr(request, name),
+                    __getattr__ = lambda self, name: getattr(request, name),
                     meta = meta,
                     user = user,
                     session = session,
-                    )),
+                    ))(),
                 response = type('', (object,), dict(
-                    __getattr__ = lambda name: (
-                        getattr(response, name) ),
-                    redirect = lambda location: (
+                    __getattr__ = lambda self, name: getattr(response, name),
+                    redirect  = lambda self, location: (
                         (_ for _ in ()).throw(falcon.HTTPMovedPermanently(location))
                         ),
-                    broadcast = lambda name, value, option = dict(): (
+                    broadcast = lambda self, name, value, option = dict(): (
                         plugin.responses['broadcast'](
                             renderer.render(
                                 locale, self.meta['broadcast'][name], value
                                 ), option)
                         ),
-                    ))
+                    ))()
                 )
             renderer.response(
                 request, response, locale, self.meta['response'], dict(data)
