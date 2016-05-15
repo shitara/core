@@ -33,6 +33,8 @@ def authenticate(meta, request, response):
                 'no user').throw()
         return False
 
+    current_user = None
+
     if meta.get('session'):
         cookie = request.cookies.get(settings['session']['name'])
         model = models[__auths.session[meta['session']]['model'].capitalize()]
@@ -57,7 +59,7 @@ def authenticate(meta, request, response):
                 path = '/',
                 max_age = settings['session'].get('expire', None),
                 )),
-            delete = lambda: (self.response.set_cookie(
+            delete = lambda: (response.set_cookie(
                 settings['session']['name'], '',
                 secure = False,
                 path = '/',
