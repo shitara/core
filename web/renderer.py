@@ -38,16 +38,19 @@ def __append_headers(request, response, meta, body = ''):
     response.body = body.replace('<break>', '\\n')
     response.content_type = 'application/%s' % meta['type']
 
-    response.set_header('Access-Control-Allow-Credentials', 'true')
-
-    if settings.get('allow-origin'):
-        response.set_header('Access-Control-Allow-Origin',
-             request.headers.get('ORIGIN', '') if settings['allow-origin'] == True else settings['allow-origin']
-             )
-    else:
-        response.set_header('Access-Control-Allow-Origin', ' '.join(
-            settings.get('allow-origins') or []
+    if settings.get('crossdomain'):
+        response.set_header('Access-Control-Allow-Credentials',
+            settings['crossdomain'].get('credentials') and 'true' or 'false'
+            )
+        response.set_header('Access-Control-Allow-Headers', ','.join(
+            settings['crossdomain'].get('headers') or []
             ))
+        response.set_header('Access-Control-Allow-Origin',
+            request.headers.get('ORIGIN', '') if settings['crossdomain'].get('origins') == True else ' '.join(
+                cors.get('origins') or []
+                )
+            )
+
     for i,v in (meta.get('headers') or {}).items():
         response.set_header(i, v)
 
@@ -55,7 +58,7 @@ def __append_headers(request, response, meta, body = ''):
 def render(locale, meta, data):
 
     environment.filters['h'] = lambda v,c: (
-        isinstance(v, str) and '\'%s\'' % v.replace('\n', '<break>') or v != None and str(v) or ''
+        isinstance(v, str) and '\'%s\'' % v.replace('\n', '<break>').replace('\'', '\'\'') or v != None and str(v) or ''
         )
     environment.install_gettext_translations(locale)
 
@@ -70,7 +73,7 @@ def render(locale, meta, data):
 def response(request, response, locale, meta, data):
 
     environment.filters['h'] = lambda v,c: (
-        isinstance(v, str) and '\'%s\'' % v.replace('\n', '<break>') or v != None and str(v) or ''
+        isinstance(v, str) and '\'%s\'' % v.replace('\n', '<break>').replace('\'', '\'\'') or v != None and str(v) or ''
         )
     environment.install_gettext_translations(locale)
 
@@ -88,7 +91,7 @@ def response(request, response, locale, meta, data):
 def error(request, response, locale, meta, error):
 
     environment.filters['h'] = lambda v,c: (
-        isinstance(v, str) and '\'%s\'' % v.replace('\n', '<break>') or v != None and str(v) or ''
+        isinstance(v, str) and '\'%s\'' % v.replace('\n', '<break>').replace('\'', '\'\'') or v != None and str(v) or ''
         )
     environment.install_gettext_translations(locale)
 
@@ -136,5 +139,11 @@ def document(request, response, locale, meta):
 
     body = TYPES[meta['response']['type']](data)
     __append_headers(request, response, meta['response'], body)
+
+def options(request, response, meta):
+
+    __append_headers(
+        request, response, meta['response']
+        )
 
 

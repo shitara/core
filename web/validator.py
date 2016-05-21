@@ -8,19 +8,20 @@ from core.ext.exception import *
 from core.db import models
 from core.util.dict import propdict
 
-__auths = config(settings['application']['auths'])
+__confs = config(settings['application']['auths'])
 __auths = propdict(
-    session = __auths.get('session') or {},
-    secrets = __auths.get('secrets') or {},
+    session = __confs.get('session') or {},
+    secrets = __confs.get('secrets') or {},
     )
 
 def authenticate(meta, request, response):
 
     def validation(m, current_user):
 
-        if len({ i:v for i,v in (__auths.get('administrator') or {}).items()
-            if request.headers.get(i) != v }) == 0:
-            return True
+        if __confs.get('administrator'):
+            if len({ i:v for i,v in __confs['administrator'].items()
+                if request.headers.get(i) != v }) == 0:
+                return True
 
         current_user or errors.AuthenticateError(
             'no user').throw()

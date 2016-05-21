@@ -49,6 +49,12 @@ class RequestHandler(object):
             self.on_request(
                 'post', request, response, **kwargs)
 
+    @loggingrequest
+    def on_options(self, request, response, *kwargs):
+        renderer.options(
+            request, response, self.meta
+            )
+
     def on_request(self, method, request, response, **kwargs):
         try:
             locale = Locale(request.headers.get(
