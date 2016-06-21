@@ -12,7 +12,7 @@ def _(plugin):
             isinstance(plugin, dict) and plugin['class'] or plugin
             )
         _params = (
-            isinstance(plugin, dict) and plugin['arguments'] or {}
+            isinstance(plugin, dict) and plugin.get('arguments') or {}
             ) or {}
         return dict(
             OrderedDict = lambda c: _plugin(**c),

@@ -17,13 +17,12 @@ table.filter = function(t, filter)
         elseif type(filter) == 'table' then
             if _(k, filter) then dic[k] = t[k] end
         else
-            if t[k] then dic[k] = t[k] end
+            if t[k] ~= nil then dic[k] = t[k] end
         end
     end
     return dic
 end
 table.iter = function(t)
-    local dic = {}
     if isinstance(t, dict) then
         return python.iterex(t)
     elseif isinstance(t, list) then
@@ -31,7 +30,7 @@ table.iter = function(t)
     elseif type(t, list) == 'userdata' then
         return python.enumerate(t)
     else
-        return pairs(t)
+        return pairs(t or {})
     end
 end
 string.split = function(str, delim)

@@ -60,7 +60,8 @@ class ActiveRecord:
         return False
 
     def save(self, *args, **kwargs):
-        self.updated_at = datetime.now()
+        if not len(args) or args[0]:
+            self.updated_at = datetime.now()
         return super().save(*args, **kwargs)
 
     @classmethod
@@ -80,8 +81,11 @@ class ActiveRecord:
             return id and cls.find_by(id).first() or None
 
     @classmethod
-    def find_by(cls, kwargs = {}):
-        return cls.query(**kwargs)
+    def find_by(cls, *args, **kwargs):
+        query = Q(**(len(args) and args[0] or dict()))
+        for v in len(args) > 1 and args[1:] or []:
+            query |= Q(**v)
+        return cls.objects.filter(query)
 
     @classmethod
     def query(cls, **kwargs):

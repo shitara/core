@@ -117,7 +117,7 @@ class RequestHandler(object):
             request.cookies,
             request.headers,
             getattr(request, 'user', None) and request.user.id or 'anonymous',
-            ','.join(request.access_route),
+            ','.join(request.remote_addr),
             type(exception), ms,
             ''.join(traceback.format_tb(tb)),)
         logging.error(message)
