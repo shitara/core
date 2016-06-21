@@ -48,6 +48,14 @@ string.split = function(str, delim)
     table.insert(result, string.sub(str, lastPos))
     return result
 end
+pattern_escape_replacements = {
+    ["("] = "%(",[")"] = "%)",["."] = "%.",["%"] = "%%",["+"] = "%+",["-"] = "%-",["*"] = "%*",["?"] = "%?",["["] = "%[",["]"] = "%]",["^"] = "%^",["$"] = "%$",["\0"] = "%z"
+}
+function string.replace(s, search, replace)
+    search = search:gsub(".", pattern_escape_replacements)
+    replace = replace:gsub( "%%", "%%%1" )
+    return s:gsub( search, replace )
+end
 '''
 
 class LuaRuntime:
