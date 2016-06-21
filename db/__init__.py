@@ -1,6 +1,7 @@
 
 import os
 import glob
+import logging
 
 from core.conf import create_path, load_config, settings
 from core.db.model import ActiveRecord, properties
